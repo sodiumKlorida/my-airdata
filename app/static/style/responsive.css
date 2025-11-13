@@ -1,0 +1,99 @@
+/* ============================== */
+/* RESPONSIVE FIX — AIR DASHBOARD */
+/* ============================== */
+
+/* 💻 Laptop / layar 90% */
+@media (max-width: 1366px) {
+  /* Pastikan struktur utama tetap dua kolom */
+  .flex.flex-col.lg\:flex-row.flex-1.mx-4.gap-6 {
+    flex-direction: row !important;
+    align-items: flex-start !important;
+  }
+
+  /* Sidebar kanan lebih ramping */
+  aside.basis-1\/3.lg\:w-80.flex.flex-col.gap-6 {
+    flex: 0 0 300px !important;
+    max-width: 320px !important;
+    min-width: 0;
+  }
+
+  /* ✳️ Forecast udara & cuaca lebar penuh seperti Air Quality */
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\],
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\].mx-auto {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Chart tidak menyempit */
+  #aqiChart {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 35rem !important;
+  }
+
+  /* Scrollable container tetap rapi */
+  .flex.flex-nowrap.space-x-4.overflow-x-auto.pb-4.scrollbar-thin {
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* 📱 Tablet / layar 80% */
+@media (max-width: 1024px) {
+  /* Atur layout menjadi vertikal */
+  .flex.flex-col.lg\:flex-row.flex-1.mx-4.gap-6 {
+    flex-direction: column !important;
+  }
+
+  aside.basis-1\/3.lg\:w-80.flex.flex-col.gap-6 {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 1.5rem !important;
+  }
+
+  /* ✳️ Forecast udara & cuaca tetap penuh */
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\],
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\].mx-auto {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Chart proporsional */
+  #aqiChart {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 32rem !important;
+  }
+}
+
+/* 📲 Mobile (≤768px) */
+@media (max-width: 768px) {
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\],
+  article.bg-gray-200.dark\:bg-gray-800.rounded-2xl.p-6.max-w-\[62rem\].mx-auto {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #aqiChart {
+    max-height: 28rem !important;
+  }
+
+  aside.basis-1\/3.lg\:w-80.flex.flex-col.gap-6 {
+    margin-top: 1rem !important;
+  }
+}
+
+/* 🔧 Hindari overflow horizontal */
+html,
+body {
+  overflow-x: hidden !important;
+}
+
+/* 🔹 Pastikan semua konten sidebar rapi */
+aside * {
+  max-width: 100%;
+  box-sizing: border-box;
+}

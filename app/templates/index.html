@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Air Dashboard</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="title" content="Air Dashboard - My Airdata">
+    <meta name="description" content="Pantau kualitas udara dan prakiraan cuaca di Tandes, Surabaya. Dapatkan data real-time AQI, prakiraan cuaca, serta tren polusi harian.">
+      
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/logo.png') }}">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/scroll.css') }}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lottie & Config -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="{{ url_for('static', filename='script/tailwind-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/theme-init.js') }}"></script>
+  </head>
+
+  <body class="bg-gray-100 dark:bg-gray-900 flex flex-col min-h-screen transition-colors duration-500">
+    <!-- Navbar -->
+    <nav class="bg-gray-200 dark:bg-gray-800 shadow p-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-2">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="" class="w-[3rem] lg:w-[4rem]" />
+        <span class="font-bold text-xl text-gray-700 dark:text-gray-200">My Airdata</span>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <!-- Tanggal & waktu -->
+        <div class="hidden md:flex gap-4 items-center min-w-[150px] bg-gray-300 dark:bg-gray-700 p-4 rounded-xl">
+          <span id="tanggal" class="text-gray-600 dark:text-gray-300 font-semibold">Tanggal</span>
+          <span id="waktu" class="text-gray-600 dark:text-gray-300 text-lg font-mono">Waktu</span>
+        </div>
+
+        <!-- Dark mode toggle -->
+        <button id="toggle-theme" class="relative w-14 h-8 flex items-center rounded-full bg-gray-300 dark:bg-gray-600 transition-colors duration-500">
+          <span id="switch-icon" class="absolute left-1 top-1 w-6 h-6 flex items-center justify-center rounded-full bg-white shadow-md text-yellow-500 transition-transform duration-500">
+            <!-- Sun -->
+            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-9h1M3.34 12h1m15.07-6.36l.7.7M4.93 19.07l.7.7M19.07 19.07l.7-.7M4.93 4.93l.7-.7M12 7a5 5 0 100 10 5 5 0 000-10z" />
+            </svg>
+
+            <!-- Moon -->
+            <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Current Weather -->
+    <article class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-6 mx-4 my-6 flex flex-col sm:flex-row justify-between items-center text-center sm:text-left gap-4">
+      <!-- 📱 Mobile View -->
+      <div id="mobile-weather" class="flex w-full justify-center items-center sm:hidden">
+        <div id="mobile-card" class="flex flex-col items-center justify-center bg-gradient-to-b from-gray-400 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-8 shadow-lg w-64 h-64 transition-transform duration-500 hover:scale-105">
+          <p class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Memuat...</p>
+          <span class="text-5xl">🌤️</span>
+          <p class="text-4xl font-bold text-gray-900 dark:text-gray-100 mt-2">--</p>
+        </div>
+      </div>
+
+      <!-- 💻 Desktop View -->
+      <div class="hidden sm:flex w-[97%] mx-auto justify-between items-center gap-6 py-4">
+        <!-- 📍 Lokasi -->
+        <div class="flex flex-col">
+          <h1 class="text-2xl font-bold text-gray-700 dark:text-gray-200">Tandes 📍</h1>
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Balongsari, Surabaya</p>
+        </div>
+
+        <!-- 🌦️ Weather Info Cards -->
+        <div class="flex justify-center items-center flex-wrap gap-6">
+          <!-- 🌡️ Suhu -->
+          <div id="desktop-suhu" data-value="{{ current.suhu }}" class="flex flex-col items-center justify-center bg-gradient-to-b from-gray-400 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-8 shadow-lg w-52 h-52 hover:scale-105 transition-transform duration-300">
+            <p class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Suhu</p>
+            <span class="text-5xl">🌡️</span>
+            <p class="text-4xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ current.suhu }}°C</p>
+          </div>
+
+          <!-- 🍃 Angin -->
+          <div id="desktop-angin" data-value="{{ current.kecepatan_angin }}" class="flex flex-col items-center justify-center bg-gradient-to-b from-gray-400 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-8 shadow-lg w-52 h-52 hover:scale-105 transition-transform duration-300">
+            <p class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Angin</p>
+            <span class="text-5xl">🍃</span>
+            <p class="text-4xl font-bold text-gray-900 dark:text-gray-100 mt-2">{{ current.kecepatan_angin }} Km/j</p>
+          </div>
+
+          <!-- 🌤️ Cuaca -->
+          <div id="desktop-weather" data-desc="{{ current.weatherdesc }}" class="flex flex-col items-center justify-center bg-gradient-to-b from-gray-400 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-8 shadow-lg w-52 h-52 hover:scale-105 transition-transform duration-300">
+            {% if 'cerah' in current.weatherdesc|lower %}
+              <lottie-player src="{{ url_for('static', filename='animations/sun.json') }}" background="transparent" speed="1" style="width:120px;height:120px;" loop autoplay></lottie-player>
+            {% elif 'berawan' in current.weatherdesc|lower %}
+              <lottie-player src="{{ url_for('static', filename='animations/cloudy.json') }}" background="transparent" speed="1" style="width:120px;height:120px;" loop autoplay></lottie-player>
+            {% elif 'hujan' in current.weatherdesc|lower %}
+              <lottie-player src="{{ url_for('static', filename='animations/rain_clouds.json') }}" background="transparent" speed="1" style="width:120px;height:120px;" loop autoplay></lottie-player>
+            {% elif 'petir' in current.weatherdesc|lower %}
+              <lottie-player src="{{ url_for('static', filename='animations/storm.json') }}" background="transparent" speed="1" style="width:120px;height:120px;" loop autoplay></lottie-player>
+            {% else %}
+              <lottie-player src="{{ url_for('static', filename='animations/cloudy.json') }}" background="transparent" speed="1" style="width:120px;height:120px;" loop autoplay></lottie-player>
+            {% endif %}
+
+            <p class="text-xl font-bold text-gray-900 dark:text-gray-100 text-center mt-2">{{ current.weatherdesc }}</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Main Content -->
+    <div class="flex flex-col lg:flex-row flex-1 mx-4 gap-6">
+      <!-- Left Content -->
+      <div class="basis-2/3 space-y-6">
+        <!-- Air Quality -->
+        <article class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Kualitas Udara</h2>
+
+          <!-- Grid responsif -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- CO -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">CO (Karbon Monoksida)</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.co }} µg/m³</p>
+            </div>
+
+            <!-- NO2 -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">NO₂ (Nitrogen Dioksida)</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.no2 }} µg/m³</p>
+            </div>
+
+            <!-- O3 -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">O₃ (Ozon)</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.o3 }} µg/m³</p>
+            </div>
+
+            <!-- PM10 -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">PM10</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.pm10 }} µg/m³</p>
+            </div>
+
+            <!-- PM2.5 -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">PM2.5</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.pm25 }} µg/m³</p>
+            </div>
+
+            <!-- SO2 -->
+            <div class="flex flex-col justify-between bg-gray-300 dark:bg-gray-700 rounded-xl p-4 shadow h-full">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">SO₂ (Sulfur Dioksida)</p>
+              <p class="text-3xl font-bold text-gray-800 dark:text-gray-100">{{ aqi.so2 }} µg/m³</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Forecast Kualitas Udara -->
+        <article class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-6 max-w-[62rem] mx-auto">
+          <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Forecast Kualitas Udara</h2>
+
+          <div class="flex flex-nowrap space-x-4 overflow-x-auto pb-4 scrollbar-thin">
+            {% for item in prediksi_aqi %}
+              {% if item.pm25 is defined %}
+                <div class="flex-shrink-0 flex flex-col items-center min-w-[150px] bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md">
+                  <p class="font-semibold text-gray-700 dark:text-gray-200">{{ item.tanggal }}</p>
+
+                  {% if item.pm25 <= 50 %}
+                    <div class="text-3xl mt-2">😃</div>
+                    <p class="mt-2 text-green-500 font-bold">{{ item.pm25 }}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Baik</p>
+                  {% elif item.pm25 <= 100 %}
+                    <div class="text-3xl mt-2">🙂</div>
+                    <p class="mt-2 text-yellow-500 font-bold">{{ item.pm25 }}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Sedang</p>
+                  {% elif item.pm25 <= 150 %}
+                    <div class="text-3xl mt-2">😷</div>
+                    <p class="mt-2 text-orange-500 font-bold">{{ item.pm25 }}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Tidak Sehat</p>
+                  {% else %}
+                    <div class="text-3xl mt-2">☠️</div>
+                    <p class="mt-2 text-red-500 font-bold">{{ item.pm25 }}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Berbahaya</p>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </article>
+
+        <!-- Forecast Cuaca -->
+        <article class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-6 max-w-[62rem]">
+          <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Prakiraan Cuaca</h2>
+
+          <!-- Scrollable container -->
+          <div class="flex flex-nowrap space-x-4 overflow-x-auto pb-4 w-full scrollbar-thin gap-4">
+            {% for entry in forecast %}
+              <div class="flex-shrink-0 flex flex-col items-center min-w-[80px] bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md">
+                <p class="text-xs text-gray-700 dark:text-gray-200">{{ entry.waktu }}</p>
+
+                {% if 'cerah' in entry.weatherdesc|lower %}
+                  <lottie-player src="{{ url_for('static', filename='animations/sun.json') }}" background="transparent" speed="1" style="width:60px;height:60px;" loop autoplay></lottie-player>
+                {% elif 'berawan' in entry.weatherdesc|lower %}
+                  <lottie-player src="{{ url_for('static', filename='animations/cloudy.json') }}" background="transparent" speed="1" style="width:60px;height:60px;" loop autoplay></lottie-player>
+                {% elif 'hujan' in entry.weatherdesc|lower %}
+                  <lottie-player src="{{ url_for('static', filename='animations/rain_clouds.json') }}" background="transparent" speed="1" style="width:60px;height:60px;" loop autoplay></lottie-player>
+                {% elif 'petir' in entry.weatherdesc|lower %}
+                  <lottie-player src="{{ url_for('static', filename='animations/storm.json') }}" background="transparent" speed="1" style="width:60px;height:60px;" loop autoplay></lottie-player>
+                {% else %}
+                  <lottie-player src="{{ url_for('static', filename='animations/cloudy.json') }}" background="transparent" speed="1" style="width:60px;height:60px;" loop autoplay></lottie-player>
+                {% endif %}
+
+                <p class="mt-1 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ entry.suhu }}°</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400 text-center">{{ entry.weatherdesc }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      </div>
+
+      <!-- Right Sidebar -->
+      <aside class="basis-1/3 lg:w-80 flex flex-col gap-6">
+        <!-- Tips -->
+        <div class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-6 overflow-y-auto">
+          <p class="text-lg font-bold text-gray-700 dark:text-gray-200 mb-2">Tips</p>
+          <p class="text-gray-700 dark:text-gray-200">{{ tips }}</p>
+        </div>
+
+        <!-- 🔹 Trend Kualitas Udara -->
+        <div class="bg-gray-200 dark:bg-gray-800 rounded-2xl p-4 sm:p-6 max-w-5xl mx-auto shadow-md mt-10">
+          <!-- 📈 Grafik AQI -->
+          <div class="bg-gray-300 dark:bg-gray-700 p-4 sm:p-6 rounded-2xl shadow-inner h-[30rem] sm:h-[36rem] lg:h-[37.5rem] flex items-center justify-center">
+            <canvas id="aqiChart" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-center mt-10 p-6 rounded-t-2xl shadow-inner space-y-5">
+      <!-- 🌐 Logo / Ikon -->
+      <div class="flex flex-wrap justify-center items-center gap-6 sm:gap-10">
+        <!-- Telkom -->
+        <div class="bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md w-40 sm:bg-transparent sm:dark:bg-transparent sm:shadow-none sm:w-auto sm:p-0 flex items-center justify-center hover:scale-105 transition-transform duration-300">
+          <img src="{{ url_for('static', filename='assets/telkom.png') }}" alt="Telkom" class="h-12 sm:h-14 md:h-16 object-contain" />
+        </div>
+
+        <!-- BISA -->
+        <div class="bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md w-40 sm:bg-transparent sm:dark:bg-transparent sm:shadow-none sm:w-auto sm:p-0 flex items-center justify-center hover:scale-105 transition-transform duration-300">
+          <img src="{{ url_for('static', filename='assets/bisa.png') }}" alt="BISA" class="h-12 sm:h-14 md:h-16 object-contain" />
+        </div>
+
+        <!-- Danantara -->
+        <div class="bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md w-40 sm:bg-transparent sm:dark:bg-transparent sm:shadow-none sm:w-auto sm:p-0 flex items-center justify-center hover:scale-105 transition-transform duration-300">
+          <img src="{{ url_for('static', filename='assets/danantara.png') }}" alt="Danantara" class="h-12 sm:h-14 md:h-16 object-contain" />
+        </div>
+
+        <!-- Ayo Beraksi -->
+        <div class="bg-gray-300 dark:bg-gray-700 p-4 rounded-xl shadow-md w-40 sm:bg-transparent sm:dark:bg-transparent sm:shadow-none sm:w-auto sm:p-0 flex items-center justify-center hover:scale-105 transition-transform duration-300">
+          <img src="{{ url_for('static', filename='assets/ayoberaksihytam.png') }}" alt="Ayo Beraksi" class="h-10 sm:h-12 md:h-14 object-contain" />
+        </div>
+      </div>
+
+      <!-- 📝 Hak Cipta -->
+      <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 tracking-wide pb-2">
+        &copy; 2025 <span class="font-semibold text-gray-800 dark:text-gray-200">My Airdata</span>
+      </p>
+    </footer>
+
+    <!-- Scripts -->
+
+    <!-- Pastikan Chart.js sudah di-load -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Load file JS terpisah -->
+    <script src="{{ url_for('static', filename='script/darkmode.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/mobileWeather.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/weatherAnimation.js') }}"></script>
+    <script src="{{ url_for('static', filename='script/time.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.0/lottie.min.js"></script>
+  </body>
+</html>
