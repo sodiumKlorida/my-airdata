@@ -5,17 +5,13 @@ def create_connection():
     """Koneksi ke MySQL lokal."""
     try:
         connection = mysql.connector.connect(
-            host="localhost",   # tanpa https://
-            user="root",
+            host="",   # tanpa https://
+            user="",
             password="",
-            database="db_aqi",
+            database="",
             port=3306
         )
-        # host="localhost",
-        #     user="myairdat_tandes",         
-        #     password="bSos@}@GHpPd]O&x",         
-        #     database="myairdat_tandes_db"  
-        # )
+        
         if connection.is_connected():
             print("✅ Koneksi ke MySQL berhasil")
         return connection
